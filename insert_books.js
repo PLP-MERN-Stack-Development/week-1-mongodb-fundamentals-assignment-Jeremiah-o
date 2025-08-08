@@ -176,7 +176,7 @@ async function insertBooks() {
 }
 
 // Run the function
-insertBooks().catch(console.error);
+//insertBooks().catch(console.error);
 
 /*
  * Example MongoDB queries you can try after running this script:
@@ -196,3 +196,190 @@ insertBooks().catch(console.error);
  * 5. Find in-stock books:
  *    db.books.find({ in_stock: true })
  */ 
+
+// 1. Find all books:
+
+async function findBooks() {
+  const client = new MongoClient(uri);
+  try {
+    //establish a connection
+    await client.connect();
+    console.log('Connected to database');
+
+    const db = client.db(dbName);
+    const collection = db.collection(collectionName);
+
+    const result=await collection.find().toArray()
+    console.log("There are "+result.length+" books available: ",result)
+
+    client.close()
+    console.log("connection closed")
+  } catch (error) {
+    console.log("an error ocurred ",error)
+  }finally {
+    // Close the connection
+    await client.close();
+    console.log('Connection closed');
+  }
+}
+//findBooks()
+
+// 2. find by a specific author
+async function authorBook(name) {
+  const client = new MongoClient(uri);
+  try {
+    await client.connect();
+    console.log('Connected to database');
+
+    const db = client.db(dbName);
+    const collection = db.collection(collectionName);
+
+    const result=await collection.find({ author: name }).toArray()
+    if(result.length==0){
+      console.log("There are no books written by ",name)
+    }
+    else if(result.length==1){
+      console.log("There is only 1 book written by "+name+":",result)
+    }
+    else{
+      console.log("There are "+result.length+" available books under the author "+name+ " are: ",result)
+    }
+    client.close()
+    console.log("connection closed")
+  } catch (error) {
+    console.log("an error ocurred ",error)
+  } finally {
+    // Close the connection
+    await client.close();
+    console.log('Connection closed');
+  }
+}
+//authorBook('Herman Melville') 
+// insert the name of the author as the parameters
+
+//3.Find books published after 1950:
+async function yearBook() {
+  const client = new MongoClient(uri);
+  try {
+    await client.connect();
+    console.log('Connected to database');
+
+    const db = client.db(dbName);
+    const collection = db.collection(collectionName);
+
+    const result=await collection.find({ published_year: { $gt: 1950 }}).toArray()
+    console.log("There are "+result.length+" available books published after 1950 are: ",result)
+
+    client.close()
+    console.log("connection closed")
+  } catch (error) {
+    console.log("an error ocurred ",error)
+  } finally {
+    // Close the connection
+    await client.close();
+    console.log('Connection closed');
+  }
+}
+//yearBook()
+
+//4.Find books in a specific genre:
+async function genreBook(nameOfGenre) { 
+  const client = new MongoClient(uri);
+  try {
+    await client.connect();
+    console.log('Connected to database');
+
+    const db = client.db(dbName);
+    const collection = db.collection(collectionName);
+
+    const result=await collection.find({ genre:nameOfGenre }).toArray()
+    if(result.length==0){
+      console.log('There are no books under the genre ',nameOfGenre)
+    }
+    else if(result.length==1){
+      console.log('There is only 1 book under the genre ',nameOfGenre+":",result)
+    }
+    else{
+      console.log("There are "+result.length+" available books under the genre "+nameOfGenre+ ":",result)
+    }
+    
+    client.close()
+    console.log("connection closed")
+  } catch (error) {
+    console.log("an error ocurred ",error)
+  }  finally {
+    // Close the connection
+    await client.close();
+    console.log('Connection closed');
+  }
+}
+// enter genre as a parameter
+//genreBook("Fiction")
+
+//5. Instock books
+async function inStock() {  
+  const client = new MongoClient(uri);
+  try {
+    await client.connect();
+    console.log('Connected to database');
+
+    const db = client.db(dbName);
+    const collection = db.collection(collectionName);
+
+    const result=await collection.find({ in_stock: true }).toArray()
+    console.log("There are "+result.length+" books in stock: ",result)
+
+    client.close()
+    console.log("connection closed")
+  } catch (error) {
+    console.log("an error ocurred ",error)
+  } finally {
+    // Close the connection
+    await client.close();
+    console.log('Connection closed');
+  }
+}
+//update price of a specific book
+async function updatePrice(bookTitle,Nprice) {
+  const client=new MongoClient(uri)
+  try {
+    await client.connect();
+    console.log('Connected to database');
+
+    const db = client.db(dbName);
+    const collection = db.collection(collectionName);
+
+    const result= await collection.updateOne({title:bookTitle},{$set:{price:Nprice}})
+    if (result.matchedCount === 0) {
+      console.log(`No book found with title "${bookTitle}"`);
+    } 
+    else {
+      console.log(`Updated ${result.modifiedCount} book(s) successfully`);
+    }
+  } catch (error) {
+    console.log("an error ocurred ",error)
+  }
+}
+
+//deleting a book by its title
+async function deleteBook(bookTitle) {
+  const client=new MongoClient(uri)
+  try {
+    await client.connect();
+    console.log('Connected to database');
+
+    const db = client.db(dbName);
+    const collection = db.collection(collectionName);
+
+    const result= await collection.deleteOne({title:bookTitle})
+    if (result.deletedCount === 0) {
+      console.log(`No book found with title "${bookTitle}"`);
+    } 
+    else {
+      console.log(`Deleted ${result.deletedCount} book(s) successfully`);
+    }
+  } catch (error) {
+    console.log("an error ocurred ",error)
+  }
+}
+module.exports={insertBooks,findBooks,authorBook,yearBook,genreBook,inStock,updatePrice,deleteBook}
